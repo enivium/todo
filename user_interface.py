@@ -2,7 +2,6 @@
 # Handles interactions with the user
 
 import curses
-import enum
 import datetime
 
 import task_list
@@ -38,9 +37,9 @@ class User_Interface:
         # Initialize colors
         curses.start_color()
         curses.use_default_colors()
-        curses.init_pair(Color.P1, curses.COLOR_GREEN, -1)
-        curses.init_pair(Color.P2, curses.COLOR_CYAN, -1)
-        curses.init_pair(Color.P3, curses.COLOR_BLUE, -1)
+        curses.init_pair(color_enum.Color.P1, curses.COLOR_GREEN, -1)
+        curses.init_pair(color_enum.Color.P2, curses.COLOR_CYAN, -1)
+        curses.init_pair(color_enum.Color.P3, curses.COLOR_BLUE, -1)
 
     def run(self):
         # Main run loop
@@ -74,6 +73,7 @@ class User_Interface:
 
     def display(self):
         # Macro for tasks and menu display
+        self.stdscr.erase()
         self.display_date()
         self.display_menu() 
         self.update_tasks()
@@ -93,7 +93,7 @@ class User_Interface:
             priority = self.tasks[i].get_priority()
             self.task_pad.addstr(i, 0, str(i + 1) + ") " + self.tasks[i].get_name(), \
                                  curses.color_pair(priority))
-            if (self.tasks[i].get_date() > current_date):
+            if (self.tasks[i].get_date() > self.current_date):
                 self.task_pad.addstr('*')
 
     def display_tasks(self):
@@ -127,10 +127,11 @@ class User_Interface:
         curses.echo()
         curses.nocbreak()         
 
-        input = curses.getch()
-        while (input != '\n'):
+        input = self.stdscr.getch()
+        input_str = ''
+        while (input != ord('\n')):
             input_str += chr(input)
-            input = curses.getch()
+            input = self.stdscr.getch()
 
         curses.curs_set(0)
         curses.noecho()
@@ -173,7 +174,7 @@ class User_Interface:
             return
 
         # Get when to recurr from
-        task_recurr_from_due = false
+        task_recurr_from_due = False
         if (task_recurr != 'none' and task_recurr != 'n'):
             self.stdscr.addstr(line_num, 0, 'Recurr From:')
             line_num += 1
@@ -182,16 +183,16 @@ class User_Interface:
             self.stdscr.addstr(line_num, 0, '[c]ompletion date')
             line_num += 1
             input = 0
-            valid_input = false
-            while (!valid_input):
-                input = curses.getch()
+            valid_input = False
+            while (not valid_input):
+                input = self.stdscr.getch()
                 if (input == ord('q')):
                     return
                 elif (input == ord('d')):
-                    valid_input = true
-                    task_recurr_from_due = true
+                    valid_input = True
+                    task_recurr_from_due = True
                 elif (input == ord('c')):
-                    valid_input = true
+                    valid_input = True
 
         # Get priority
         self.stdscr.addstr(line_num, 0, 'Priority:')
@@ -202,16 +203,19 @@ class User_Interface:
         line_num += 1
         self.stdscr.addstr(line_num, 0, '[3]')
         input = 0
-        valid_input = false
-        while (!valid_input):
-            input = curses.getch()
-            if (input == ord('1')):
+        valid_input = False
+        while (not valid_input):
+            input = self.stdscr.getch()
+            if (input == ord('q')):
                 return
             elif (input == ord('1')):
+                valid_input = True
                 task_priority = 1
             elif (input == ord('2')):
+                valid_input = True
                 task_priority = 2
             elif (input == ord('3')):
+                valid_input = True
                 task_priority = 3
 
         self.task_list.add_task(task_name, task_date, task_recurr, task_recurr_from_due, \
